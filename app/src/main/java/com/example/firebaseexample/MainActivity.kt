@@ -40,10 +40,10 @@ class MainActivity : AppCompatActivity() {
         )
 
         // Get an auto generated id for a document that you want to insert
-        val id = contacts.document().id
+        val documentId = contacts.document().id
 
         // Add data
-        contacts.document(id).set(contact)
+        contacts.document(documentId).set(contact)
 
         // Clear texts and inform the user
         clearEditTexts()
@@ -102,7 +102,7 @@ class MainActivity : AppCompatActivity() {
             // document to be deleted, then loop over matching documents and finally delete each
             // document based on its reference
             fireBaseDb.collection("contacts")
-                .whereEqualTo("id", id)
+                .whereEqualTo("id", id.toInt())
                 .get()
                 .addOnSuccessListener {documents->
 
@@ -111,6 +111,7 @@ class MainActivity : AppCompatActivity() {
                             Log.d(TAG, "${document.id} => ${document.data}")
                             // delete the document
                             document.reference.delete()
+
                             clearEditTexts()
                             showToast("Contact has been deleted.")
                             // Assuming there is only one document we want to delete so break the loop
@@ -331,8 +332,6 @@ class MainActivity : AppCompatActivity() {
                     Log.d(TAG, "Current data: null")
                 }
             }
-
-
     }
 
     /**
