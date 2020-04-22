@@ -1,14 +1,21 @@
 package com.example.firebaseexample
 
 import android.app.AlertDialog
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.view.Menu
+import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
+import com.firebase.ui.auth.AuthUI
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.toObjects
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.content_main.*
+
 
 class MainActivity : AppCompatActivity() {
 
@@ -19,11 +26,63 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        setSupportActionBar(toolbar)
+
 
         // Get a Cloud Firestore instance
         fireBaseDb = FirebaseFirestore.getInstance()
 
+
+        // #### Authentication using FirebaseAuth #####
+        // If currentUser is null, open the RegisterActivity
+        if (FirebaseAuth.getInstance().currentUser == null){
+           startRegisterActivity()
+        }
+
     }
+
+    // An helper function to start our RegisterActivity
+    private fun startRegisterActivity(){
+        val intent = Intent(this, RegisterActivity::class.java)
+        startActivity(intent)
+        // Make sure to call finish(), otherwise the user would be able to go back to the MainActivity
+        finish()
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        menuInflater.inflate(R.menu.menu_main, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        return when(item.itemId) {
+            R.id.action_logout -> {
+                // User chose the "logout" item, logout the user then
+                Toast.makeText(this, "Logout", Toast.LENGTH_SHORT).show();
+                AuthUI.getInstance().signOut(this)
+                    .addOnCompleteListener { task ->
+                        if (task.isSuccessful){
+                            // After logout, start the RegisterActivity again
+                            startRegisterActivity()
+                        }
+                        else{
+                            Log.e(TAG, "Task is not successful:${task.exception} ")
+                        }
+                    }
+                true
+            }
+            else -> {
+                // If we got here, the user's action was not recognized.
+                // Invoke the superclass to handle it.
+                super.onOptionsItemSelected(item)
+            }
+        }
+    }
+
 
     // Alternative-1 --> uses a hashMap to structure the data to be inserted into the db
     // Add  a record to db
